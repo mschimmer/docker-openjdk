@@ -1,0 +1,24 @@
+# Base Image
+# https://hub.docker.com/_/openjdk/
+FROM openjdk:11.0.1-jdk-slim-sid
+
+ENV \
+	TZ=Europe/Berlin
+
+WORKDIR /app
+
+RUN \
+    log() { echo "\e[96m### $1 ###\e[0m"; } && \
+    log "Print base image version" && \
+        java -version && \
+	    cat /etc/*release* && \
+	log "Install additional software " && \
+        # TODO
+    log "Creating docker unix user & group " && \
+        addgroup --gid 1000 java && \
+        adduser --uid 1000 --no-create-home --shell /bin/false --ingroup java --system --disabled-password java && \
+        chown -R java:java /app/ && \
+        chmod -R 700 /app/
+
+# uid=1000(java) gid=1000(java) groups=1000(java)
+USER java
