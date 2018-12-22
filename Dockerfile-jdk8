@@ -1,0 +1,46 @@
+# Base Image für Java-basierte Anwendungen mit JDK 1.8
+
+# basierend auf openjdk:8-jdk-alpine 
+# https://github.com/docker-library/openjdk/blob/master/8/jdk/alpine/Dockerfile
+#
+# Version Stand am 16.07.2018: 
+#
+# openjdk version "1.8.0_171"
+# OpenJDK Runtime Environment (IcedTea 3.8.0) (Alpine 8.171.11-r0)
+# OpenJDK 64-Bit Server VM (build 25.171-b11, mixed mode)
+#
+# JAVA_HOME='/usr/lib/jvm/java-1.8-openjdk'
+
+
+# Base Image
+# https://hub.docker.com/_/openjdk/
+FROM openjdk:8-jdk-alpine
+
+ENV \
+	TZ=Europe/Berlin \
+	LC_ALL=en_US.UTF-8
+
+
+# Anwendungsverzeichnis
+# Alle anwendungsspezifischen Dateien müssen hier rein
+WORKDIR /app
+
+# Anpassungen Base-Image:
+#   fontconfig ttf-dejavu für ttf fonts, damit Anwendungen wie Java Melody funktionieren
+#   Nicht-priviligierter Anwendungs-User 'java' mit Group 'java' (ohne Shell) zum Ausführen der Anwendung
+#   Der dedizierte Anwendungs-User hat im WORKDIR komplette Dateiberechtigungen, um temporäre Dateien/Ordner zu erzeugen
+RUN \
+    log() { echo "\e[96m### $1 ###\e[0m"; } && \
+    log "Print base image version" && \
+        java -version && \
+	cat /etc/*release* && \
+	log "Creating docker unix group " && \
+        apk add --no-cache fontconfig ttf-dejavu && \
+    log "Creating docker unix user & group " && \
+        addgroup -g 1000 java && \
+        adduser -u 1000 -H -s /bin/false -G java -S -D java && \
+        chown -R java:java /app/ && \
+        chmod -R 700 /app/
+
+# uid=1000(java) gid=1000(java) groups=1000(java)
+USER java
